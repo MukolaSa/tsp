@@ -78,7 +78,7 @@ body {
   }
 
   i {
-    font-size: 36px;
+    font-size: 40px;
   }
 
   @media (max-width: 480px) {
@@ -92,6 +92,6 @@ body {
     }
 
     i {
-      font-size: 32px;
+      font-size: 40px;
     }
   }
