@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Райдомаєзер</title>
+  <title>Vocabulaty TSP</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -88,32 +87,12 @@
       background-color: #d4edda;
       border-color: #28a745;
       box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
-      animation: correctAnswer 0.6s ease;
-    }
-
-    @keyframes correctAnswer {
-      0% {
-        transform: scale(0.95);
-      }
-      100% {
-        transform: scale(1);
-      }
     }
 
     .incorrect {
       background-color: #f8d7da;
       border-color: #dc3545;
       box-shadow: 0 0 15px rgba(220, 53, 69, 0.5);
-      animation: incorrectAnswer 0.6s ease;
-    }
-
-    @keyframes incorrectAnswer {
-      0% {
-        transform: scale(0.95);
-      }
-      100% {
-        transform: scale(1);
-      }
     }
 
     .disabled {
@@ -124,35 +103,26 @@
       border-color: #007bff;
       background-color: #cce5ff;
       box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
-      animation: highlightCorrect 0.5s ease;
     }
 
-    @keyframes highlightCorrect {
-      0% {
-        background-color: #cce5ff;
-        border-color: #007bff;
-      }
-      100% {
-        background-color: #d1ecf1;
-        border-color: #5bc0de;
-      }
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
     }
 
-    .checkmark {
-      display: none;
-      font-size: 22px;
-      color: #28a745;
-      margin-left: 10px;
-      animation: fadeInCheckmark 0.3s ease;
+    .nav-button {
+      font-size: 24px;
+      padding: 10px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+      border: 2px solid #ddd;
+      border-radius: 50%;
+      transition: background-color 0.3s;
     }
 
-    @keyframes fadeInCheckmark {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
+    .nav-button:hover {
+      background-color: #e0e0e0;
     }
   </style>
 </head>
@@ -160,17 +130,13 @@
   <div class="card" id="quizCard">
     <div class="question" id="word"></div>
     <div class="options" id="options"></div>
+    <div class="navigation-buttons">
+      <button class="nav-button" id="prevButton">&#8592;</button>
+      <button class="nav-button" id="nextButton">&#8594;</button>
+    </div>
   </div>
 
   <script>
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
 const words = [
 {
     "word": "analysis",
@@ -459,8 +425,8 @@ const words = [
     },
     {
       "word": "unbiased",
-      "options": ["неупереджений", "справедливий", "чесний", "упереджений"],
-      "correct": 0
+      "options": ["справедливий", "чесний", "неупереджений", "упереджений"],
+      "correct": 2
     },
     {
       "word": "complex",
@@ -469,14 +435,16 @@ const words = [
     },
     {
       "word": "simple",
-      "options": ["простий", "легкий", "складний", "без проблем"],
-      "correct": 0
+      "options": ["легкий", "складний", "без проблем", "простий"],
+      "correct": 3
     },
     {
       "word": "consistent",
       "options": ["послідовний", "непослідовний", "незмінний", "рідкий"],
       "correct": 0
     },
+
+    // -----------------------------
     {
       "word": "inconsistent",
       "options": ["непослідовний", "послідовний", "незмінний", "рідкий"],
@@ -957,19 +925,11 @@ const words = [
 
 
 
-
-
-
-
-
-
-    function getRandomWord() {
-      const randomIndex = Math.floor(Math.random() * words.length);
-      return words[randomIndex];
-    }
+    let currentIndex = 0;
+    const userAnswers = [];  // This will store the user's answers for later reference.
 
     function displayWord() {
-      const currentWord = getRandomWord();
+      const currentWord = words[currentIndex];
       const wordElement = document.getElementById('word');
       const optionsElement = document.getElementById('options');
       optionsElement.innerHTML = '';
@@ -980,6 +940,15 @@ const words = [
         const optionElement = document.createElement('div');
         optionElement.textContent = option;
         optionElement.classList.add('option');
+        
+        // If the user has answered this question, highlight their answer
+        if (userAnswers[currentIndex] !== undefined) {
+          const userAnswer = userAnswers[currentIndex];
+          if (userAnswer === index) {
+            optionElement.classList.add(userAnswer === currentWord.correct ? 'correct' : 'incorrect');
+          }
+        }
+
         optionElement.onclick = () => checkAnswer(index, currentWord.correct, optionElement, currentWord);
         optionsElement.appendChild(optionElement);
       });
@@ -991,19 +960,30 @@ const words = [
 
       if (selectedIndex === correctIndex) {
         optionElement.classList.add('correct');
-        const checkmark = document.createElement('span');
-        checkmark.classList.add('checkmark');
-        checkmark.textContent = '✔';
-        optionElement.appendChild(checkmark);
-        checkmark.style.display = 'inline';
       } else {
         optionElement.classList.add('incorrect');
         const correctOption = allOptions[correctIndex];
         correctOption.classList.add('highlight');
       }
 
-      setTimeout(() => displayWord(), 2000);
+      // Save the user's answer
+      userAnswers[currentIndex] = selectedIndex;
+
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % words.length;
+        displayWord();
+      }, 2000);
     }
+
+    document.getElementById('prevButton').onclick = () => {
+      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      displayWord();
+    };
+
+    document.getElementById('nextButton').onclick = () => {
+      currentIndex = (currentIndex + 1) % words.length;
+      displayWord();
+    };
 
     displayWord();
   </script>
